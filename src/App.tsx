@@ -1,113 +1,100 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
-// Type for each completed focus session
+// session type
 type Session = {
   task: string;
-  duration: number;
+  seconds: number;
 };
 
 function App() {
-  // State for task input
-  const [task, setTask] = useState<string>("");
+  // input value
+  const [task, setTask] = useState("");
 
-  // State for timer in seconds
-  const [seconds, setSeconds] = useState<number>(0);
+  // timer value
+  const [seconds, setSeconds] = useState(0);
 
-  // State to check if timer is running
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  // running or not
+  const [running, setRunning] = useState(false);
 
-  // State to store completed sessions
-  const [sessions, setSessions] = useState<Session[]>([]);
+  // store sessions
+  const [list, setList] = useState<Session[]>([]);
 
-  // useEffect runs timer when session starts
+  // timer logic
   useEffect(() => {
-    let intervalId: number | undefined;
+    let id: number;
 
-    if (isRunning) {
-      intervalId = window.setInterval(() => {
-        setSeconds((prevSeconds) => prevSeconds + 1);
+    if (running) {
+      id = window.setInterval(() => {
+        setSeconds((prev) => prev + 1);
       }, 1000);
     }
 
-    return () => {
-      if (intervalId !== undefined) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isRunning]);
+    return () => clearInterval(id);
+  }, [running]);
 
-  // Start a new focus session
-  const startSession = () => {
-    if (task.trim() === "") {
-      alert("Please enter a task name.");
+  // start
+  const start = () => {
+    if (task === "") {
+      alert("Enter task");
       return;
     }
 
     setSeconds(0);
-    setIsRunning(true);
+    setRunning(true);
   };
 
-  // Stop the current session and save it
-  const stopSession = () => {
-    if (!isRunning) return;
+  // stop
+  const stop = () => {
+    if (!running) return;
 
-    const newSession: Session = {
+    const newItem = {
       task: task,
-      duration: seconds,
+      seconds: seconds,
     };
 
-    setSessions((prevSessions) => [...prevSessions, newSession]);
-    setIsRunning(false);
+    setList([...list, newItem]);
+
+    setRunning(false);
     setSeconds(0);
     setTask("");
   };
 
   return (
-    <div className="app-container">
-      <h1>Focus Tracker App</h1>
-      <p className="subtitle">Track your focus sessions throughout the day</p>
+    <div className="app">
+      <h1>Focus App</h1>
 
-      <div className="card">
-        <label htmlFor="task">Task Name</label>
-        <input
-          id="task"
-          type="text"
-          placeholder="Enter your task name"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          disabled={isRunning}
-        />
+      <input
+        type="text"
+        placeholder="Enter task"
+        value={task}
+        onChange={(e) => setTask(e.target.value)}
+        disabled={running}
+      />
 
-        <div className="timer-box">
-          <h2>{seconds} seconds</h2>
-        </div>
+      <h2>{seconds} sec</h2>
 
-        <div className="button-group">
-          <button onClick={startSession} disabled={isRunning}>
-            Start
-          </button>
-          <button onClick={stopSession} disabled={!isRunning}>
-            Stop
-          </button>
-        </div>
-      </div>
+      <button onClick={start} disabled={running}>
+        Start
+      </button>
 
-      <div className="card">
-        <h2>Completed Focus Sessions</h2>
+      <button onClick={stop} disabled={!running}>
+        Stop
+      </button>
 
-        {sessions.length === 0 ? (
-          <p>No completed sessions yet.</p>
-        ) : (
-          <ul className="session-list">
-            {sessions.map((session, index) => (
-              <li key={index}>
-                <strong>{session.task}</strong> - {session.duration} seconds
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <h3>Sessions</h3>
+
+      {list.length === 0 ? (
+        <p>No data</p>
+      ) : (
+        <ul>
+          {list.map((item, index) => (
+            <li key={index}>
+              {item.task} - {item.seconds} sec
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
